@@ -1,0 +1,267 @@
+/* ===== AI Translate - Inline UI ===== */
+/* All selectors prefixed with #ait- to avoid conflicts */
+
+#ait-trigger {
+  position: absolute;
+  z-index: 2147483647;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #4a90d9;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s, box-shadow 0.15s;
+  padding: 0;
+  line-height: 1;
+}
+
+#ait-trigger:hover {
+  transform: scale(1.15);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.35);
+}
+
+#ait-trigger svg {
+  width: 14px;
+  height: 14px;
+  fill: #fff;
+}
+
+/* --- Panel --- */
+#ait-panel {
+  position: absolute;
+  z-index: 2147483647;
+  width: 380px;
+  background: #fafafa;
+  border-radius: 10px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+  color: #1a1a1a;
+  overflow: hidden;
+}
+
+#ait-panel * {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Header */
+#ait-panel .ait-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: #4a90d9;
+  color: #fff;
+  cursor: move;
+  user-select: none;
+}
+
+#ait-panel .ait-header-title {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+#ait-panel .ait-close {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+  opacity: 0.8;
+}
+
+#ait-panel .ait-close:hover {
+  opacity: 1;
+}
+
+/* Body */
+#ait-panel .ait-body {
+  padding: 12px 14px;
+}
+
+/* Language bar */
+#ait-panel .ait-lang-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+#ait-panel .ait-lang-select {
+  flex: 1;
+  padding: 5px 6px;
+  border: 1px solid #d0d0d0;
+  border-radius: 5px;
+  font-size: 12px;
+  background: #fff;
+  cursor: pointer;
+  color: #333;
+}
+
+#ait-panel .ait-lang-select:focus {
+  outline: none;
+  border-color: #4a90d9;
+}
+
+#ait-panel .ait-btn-swap {
+  background: none;
+  border: 1px solid #d0d0d0;
+  border-radius: 5px;
+  padding: 4px 8px;
+  font-size: 16px;
+  cursor: pointer;
+  color: #4a90d9;
+  line-height: 1;
+}
+
+#ait-panel .ait-btn-swap:hover {
+  background: #e8f0fe;
+}
+
+/* Text areas */
+#ait-panel .ait-field {
+  margin-bottom: 8px;
+}
+
+#ait-panel .ait-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  color: #888;
+  margin-bottom: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+#ait-panel .ait-textarea {
+  width: 100%;
+  padding: 7px 9px;
+  border: 1px solid #d0d0d0;
+  border-radius: 5px;
+  font-size: 13px;
+  font-family: inherit;
+  background: #fff;
+  resize: vertical;
+  min-height: 60px;
+  color: #1a1a1a;
+}
+
+#ait-panel .ait-textarea:focus {
+  outline: none;
+  border-color: #4a90d9;
+}
+
+/* Translate button */
+#ait-panel .ait-btn-translate {
+  width: 100%;
+  padding: 8px;
+  background: #4a90d9;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+
+#ait-panel .ait-btn-translate:hover {
+  background: #3a7bc8;
+}
+
+#ait-panel .ait-btn-translate:disabled {
+  background: #a0c4e8;
+  cursor: not-allowed;
+}
+
+/* Result */
+#ait-panel .ait-detected {
+  font-size: 11px;
+  color: #888;
+  margin-bottom: 4px;
+}
+
+#ait-panel .ait-detected span {
+  color: #4a90d9;
+  font-weight: 500;
+}
+
+#ait-panel .ait-output {
+  background: #f0f7ff;
+  border: 1px solid #d0e3f7;
+  border-radius: 5px;
+  padding: 8px 9px;
+  min-height: 40px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.5;
+  font-size: 13px;
+}
+
+/* Error */
+#ait-panel .ait-error {
+  padding: 6px 8px;
+  background: #fff0f0;
+  border: 1px solid #f5c6c6;
+  border-radius: 5px;
+  color: #c0392b;
+  font-size: 12px;
+}
+
+/* Loading */
+#ait-panel .ait-loading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #888;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+#ait-panel .ait-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #d0d0d0;
+  border-top-color: #4a90d9;
+  border-radius: 50%;
+  animation: ait-spin 0.6s linear infinite;
+}
+
+@keyframes ait-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Extra fields (pronunciation, definition, example) */
+#ait-panel .ait-extra {
+  margin-top: 6px;
+}
+
+#ait-panel .ait-extra-box {
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 5px;
+  padding: 6px 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+#ait-panel .ait-pronunciation {
+  font-family: "Noto Sans", "Lucida Grande", sans-serif;
+  color: #6a5acd;
+  font-size: 14px;
+}
+
+/* Hidden utility */
+#ait-panel .ait-hidden {
+  display: none !important;
+}

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Translate</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>AI Translate</h1>
+      <nav class="tabs">
+        <button class="tab active" data-tab="translate">Translate</button>
+        <button class="tab" data-tab="settings">Settings</button>
+      </nav>
+    </header>
+
+    <!-- Translate Tab -->
+    <div id="tab-translate" class="tab-content active">
+      <div class="lang-bar">
+        <select id="source-lang" class="lang-select"></select>
+        <button id="btn-swap" class="btn-swap" title="Swap languages">&#8646;</button>
+        <select id="target-lang-translate" class="lang-select"></select>
+      </div>
+
+      <div class="field">
+        <label for="source-text">Text to translate</label>
+        <textarea id="source-text" rows="4" placeholder="Enter text or right-click selected text on any page..."></textarea>
+      </div>
+
+      <button id="btn-translate" class="btn-primary">Translate</button>
+
+      <div id="result-area" class="hidden">
+        <div class="detected-lang">
+          Detected: <span id="detected-lang">—</span>
+        </div>
+        <div class="field">
+          <label>Translation</label>
+          <div id="translation-output" class="output-box"></div>
+        </div>
+        <div id="pronunciation-area" class="extra-field hidden">
+          <label>Pronunciation</label>
+          <div id="pronunciation-output" class="extra-box pronunciation"></div>
+        </div>
+        <div id="definition-area" class="extra-field hidden">
+          <label>Definition</label>
+          <div id="definition-output" class="extra-box"></div>
+        </div>
+        <div id="example-area" class="extra-field hidden">
+          <label>Example</label>
+          <div id="example-output" class="extra-box"></div>
+        </div>
+      </div>
+
+      <div id="error-area" class="hidden">
+        <div class="error-msg" id="error-msg"></div>
+      </div>
+
+      <div id="loading" class="hidden">
+        <div class="spinner"></div>
+        <span>Translating...</span>
+      </div>
+    </div>
+
+    <!-- Settings Tab -->
+    <div id="tab-settings" class="tab-content hidden">
+      <div class="field">
+        <label>LLM Provider</label>
+        <div class="radio-group">
+          <label><input type="radio" name="provider" value="gemini" checked> Gemini</label>
+          <label><input type="radio" name="provider" value="claude"> Claude</label>
+          <label><input type="radio" name="provider" value="azureOpenAI"> Azure OpenAI</label>
+        </div>
+      </div>
+
+      <div class="field" id="field-gemini-key">
+        <label for="key-gemini">Gemini API Key</label>
+        <input type="password" id="key-gemini" placeholder="AIza...">
+      </div>
+
+      <div class="field hidden" id="field-claude-key">
+        <label for="key-claude">Claude API Key</label>
+        <input type="password" id="key-claude" placeholder="sk-ant-...">
+      </div>
+
+      <div class="field hidden" id="field-azure-key">
+        <label for="key-azure">Azure OpenAI API Key</label>
+        <input type="password" id="key-azure" placeholder="API key">
+      </div>
+
+      <div class="field hidden" id="field-azure-endpoint">
+        <label for="azure-endpoint">Azure Endpoint</label>
+        <input type="text" id="azure-endpoint" placeholder="https://your-resource.openai.azure.com">
+      </div>
+
+      <div class="field hidden" id="field-azure-deployment">
+        <label for="azure-deployment">Deployment Name</label>
+        <input type="text" id="azure-deployment" placeholder="gpt-4o">
+      </div>
+
+      <div class="field">
+        <label for="target-lang">Target Language</label>
+        <select id="target-lang"></select>
+      </div>
+
+      <div class="field">
+        <label>Translation Options</label>
+        <div class="toggle-group">
+          <label class="toggle-label">
+            <input type="checkbox" id="opt-pronunciation" checked>
+            <span>Pronunciation (IPA)</span>
+          </label>
+          <label class="toggle-label">
+            <input type="checkbox" id="opt-definition" checked>
+            <span>Definition</span>
+          </label>
+          <label class="toggle-label">
+            <input type="checkbox" id="opt-example" checked>
+            <span>Example sentence</span>
+          </label>
+        </div>
+      </div>
+
+      <button id="btn-save" class="btn-primary">Save Settings</button>
+      <div id="save-status" class="hidden save-status">Settings saved!</div>
+    </div>
+
+    <footer class="footer">
+      <span>AI Translate v1.1.0</span>
+      <a href="https://github.com/LemonAniLabs/AI-Extension" target="_blank" rel="noopener">GitHub</a>
+    </footer>
+  </div>
+
+  <script src="../lib/languages.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
