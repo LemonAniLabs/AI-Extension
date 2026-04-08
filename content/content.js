@@ -5,6 +5,7 @@
   let triggerEl = null;
   let panelEl = null;
   let selectedText = "";
+  let lastInlineResult = null;
 
   // ===== DOM helpers =====
   function el(tag, attrs, children) {
@@ -151,20 +152,26 @@
 
     // Result area
     const detectedLangSpan = el("span", { id: "ait-detected-lang", textContent: "\u2014" });
+    const favBtn = el("button", { className: "ait-btn-fav", id: "ait-btn-fav", title: "Save to favorites" });
     const outputDiv = el("div", { className: "ait-output", id: "ait-output" });
+    const cefrSpan = el("span", { className: "ait-cefr-badge", id: "ait-cefr" });
     const pronunciationDiv = el("div", { className: "ait-extra-box ait-pronunciation", id: "ait-pronunciation" });
     const definitionDiv = el("div", { className: "ait-extra-box", id: "ait-definition" });
     const exampleDiv = el("div", { className: "ait-extra-box", id: "ait-example" });
 
     const resultEl = el("div", { id: "ait-result", className: "ait-hidden" }, [
-      el("div", { className: "ait-detected" }, [
-        document.createTextNode("Detected: "),
-        detectedLangSpan
+      el("div", { className: "ait-result-header" }, [
+        el("div", { className: "ait-detected" }, [
+          document.createTextNode("Detected: "),
+          detectedLangSpan
+        ]),
+        favBtn
       ]),
       el("div", { className: "ait-field" }, [
         el("label", { className: "ait-label", textContent: "Translation" }),
         outputDiv
       ]),
+      el("div", { id: "ait-cefr-area", className: "ait-extra ait-hidden" }, [cefrSpan]),
       el("div", { id: "ait-pronunciation-area", className: "ait-extra ait-hidden" }, [
         el("label", { className: "ait-label", textContent: "Pronunciation" }),
         pronunciationDiv
@@ -232,6 +239,51 @@
       const text = sourceTextarea.value.trim();
       if (!text) return;
       doTranslateInPanel(text);
+    });
+
+    // Favorite button
+    favBtn.addEventListener("click", () => {
+      if (!lastInlineResult) return;
+      const words = lastInlineResult.sourceText.trim().split(/\s+/);
+      const type = words.length <= 5 ? "word" : "sentence";
+
+      chrome.storage.local.get(["favorites", "optSaveType"], (store) => {
+        const favorites = store.favorites || [];
+        const saveType = store.optSaveType || "all";
+
+        if (saveType === "word" && type !== "word") return;
+
+        // Prevent duplicate — increment lookup count
+        const existingIdx = favorites.findIndex(
+          (f) => f.sourceText.toLowerCase() === lastInlineResult.sourceText.toLowerCase()
+        );
+        if (existingIdx !== -1) {
+          favorites[existingIdx].lookupCount = (favorites[existingIdx].lookupCount || 1) + 1;
+          if (lastInlineResult.cefr) favorites[existingIdx].cefr = lastInlineResult.cefr;
+          chrome.storage.local.set({ favorites });
+          favBtn.classList.add("ait-fav-saved");
+          return;
+        }
+
+        const entry = {
+          id: Date.now(),
+          timestamp: new Date().toISOString(),
+          sourceText: lastInlineResult.sourceText,
+          translation: lastInlineResult.translation,
+          detectedLanguage: lastInlineResult.detectedLanguage,
+          pronunciation: lastInlineResult.pronunciation || null,
+          definition: lastInlineResult.definition || null,
+          example: lastInlineResult.example || null,
+          exampleTranslation: lastInlineResult.exampleTranslation || null,
+          cefr: lastInlineResult.cefr || null,
+          type,
+          lookupCount: 1
+        };
+
+        favorites.unshift(entry);
+        chrome.storage.local.set({ favorites });
+        favBtn.classList.add("ait-fav-saved");
+      });
     });
 
     // Persist language selections on change
@@ -342,6 +394,32 @@
             response.detectedLanguage || "unknown";
           panelEl.querySelector("#ait-output").textContent =
             response.translation || "";
+
+          // Store result for starring
+          lastInlineResult = {
+            sourceText: panelEl.querySelector("#ait-source-text").value.trim(),
+            ...response
+          };
+          // Check if already in favorites
+          const fb = panelEl.querySelector("#ait-btn-fav");
+          chrome.storage.local.get("favorites", (store) => {
+            const favorites = store.favorites || [];
+            const exists = favorites.some(
+              (f) => f.sourceText.toLowerCase() === lastInlineResult.sourceText.toLowerCase()
+            );
+            fb.classList.toggle("ait-fav-saved", exists);
+          });
+
+          // CEFR badge
+          const cefrArea = panelEl.querySelector("#ait-cefr-area");
+          const cefrEl = panelEl.querySelector("#ait-cefr");
+          if (response.cefr && response.cefr !== "null") {
+            cefrEl.textContent = response.cefr;
+            cefrEl.className = "ait-cefr-badge ait-cefr-" + response.cefr.toLowerCase();
+            cefrArea.classList.remove("ait-hidden");
+          } else {
+            cefrArea.classList.add("ait-hidden");
+          }
 
           const pronArea = panelEl.querySelector("#ait-pronunciation-area");
           if (response.pronunciation) {

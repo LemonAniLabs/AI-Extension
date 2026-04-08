@@ -5,7 +5,7 @@
 }
 
 body {
-  width: 400px;
+  width: 340px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-size: 14px;
   color: #1a1a1a;
@@ -13,6 +13,8 @@ body {
 }
 
 .container {
+  max-height: 500px;
+  overflow-y: auto;
   padding: 16px;
 }
 
@@ -286,6 +288,24 @@ textarea {
   accent-color: #4a90d9;
 }
 
+/* CEFR badge */
+.cefr-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #fff;
+}
+
+.cefr-a1 { background: #4caf50; }
+.cefr-a2 { background: #8bc34a; }
+.cefr-b1 { background: #ff9800; }
+.cefr-b2 { background: #ff5722; }
+.cefr-c1 { background: #9c27b0; }
+.cefr-c2 { background: #673ab7; }
+
 /* Extra result fields */
 .extra-field {
   margin-top: 8px;
@@ -316,6 +336,288 @@ textarea {
   font-family: "Noto Sans", "Lucida Grande", sans-serif;
   color: #6a5acd;
   font-size: 15px;
+}
+
+/* Result header with star */
+.result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.btn-fav {
+  background: #f0f0f0;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  font-size: 18px;
+  cursor: pointer;
+  color: #999;
+  padding: 4px 8px;
+  line-height: 1;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-fav::before {
+  content: "\2606";
+}
+
+.btn-fav::after {
+  content: "Save";
+  font-size: 11px;
+}
+
+.btn-fav:hover {
+  background: #fff8e1;
+  border-color: #f5a623;
+  color: #f5a623;
+}
+
+.btn-fav.saved {
+  background: #fff8e1;
+  border-color: #f5a623;
+  color: #f5a623;
+}
+
+.btn-fav.saved::before {
+  content: "\2605";
+}
+
+.btn-fav.saved::after {
+  content: "Saved";
+}
+
+/* Favorites tab */
+.fav-toolbar {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.fav-filter {
+  flex: 1;
+  padding: 5px 8px;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  font-size: 12px;
+  background: #fff;
+}
+
+.fav-list {
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.fav-empty {
+  text-align: center;
+  color: #aaa;
+  padding: 30px 0;
+  font-size: 13px;
+}
+
+.fav-date-header {
+  font-size: 11px;
+  font-weight: 600;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 6px 0 4px;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 6px;
+}
+
+.fav-item {
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  background: #fff;
+  position: relative;
+}
+
+.fav-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 4px;
+}
+
+.fav-source {
+  font-weight: 600;
+  font-size: 14px;
+  color: #333;
+  flex: 1;
+}
+
+.fav-delete {
+  background: none;
+  border: none;
+  color: #ccc;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+}
+
+.fav-delete:hover {
+  color: #e74c3c;
+}
+
+.fav-translation {
+  color: #4a90d9;
+  font-size: 13px;
+  margin-bottom: 2px;
+}
+
+.fav-pronunciation {
+  color: #6a5acd;
+  font-size: 12px;
+}
+
+.fav-definition {
+  color: #666;
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.fav-example {
+  color: #888;
+  font-size: 11px;
+  font-style: italic;
+  margin-top: 2px;
+}
+
+.fav-meta {
+  font-size: 10px;
+  color: #bbb;
+  margin-top: 4px;
+}
+
+.fav-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.btn-secondary {
+  flex: 1;
+  padding: 7px;
+  background: #f0f0f0;
+  color: #555;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-secondary:hover {
+  background: #e0e0e0;
+}
+
+.btn-danger {
+  color: #c0392b;
+  border-color: #f0c0c0;
+}
+
+.btn-danger:hover {
+  background: #fff0f0;
+}
+
+/* Section divider */
+.section-divider {
+  border-top: 1px solid #e0e0e0;
+  margin: 16px 0;
+}
+
+/* Notion */
+.btn-notion-connect {
+  width: 100%;
+  padding: 9px;
+  background: #000;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-notion-connect:hover {
+  background: #333;
+}
+
+.notion-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  background: #f0f7ff;
+  border: 1px solid #d0e3f7;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  font-size: 12px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.btn-danger-text {
+  color: #c0392b;
+}
+
+.btn-notion {
+  background: #f0f0f0;
+  border-color: #333;
+  color: #333;
+}
+
+.btn-notion:hover {
+  background: #e0e0e0;
+}
+
+.fav-notion-export {
+  margin-top: 10px;
+  padding: 10px;
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+}
+
+.fav-export-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.notion-status {
+  margin-top: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  text-align: center;
+}
+
+.notion-status.success {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.notion-status.error {
+  background: #fff0f0;
+  color: #c0392b;
 }
 
 /* Footer */

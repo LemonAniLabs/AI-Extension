@@ -12,6 +12,7 @@
       <h1>AI Translate</h1>
       <nav class="tabs">
         <button class="tab active" data-tab="translate">Translate</button>
+        <button class="tab" data-tab="favorites">Favorites</button>
         <button class="tab" data-tab="settings">Settings</button>
       </nav>
     </header>
@@ -32,12 +33,18 @@
       <button id="btn-translate" class="btn-primary">Translate</button>
 
       <div id="result-area" class="hidden">
-        <div class="detected-lang">
-          Detected: <span id="detected-lang">—</span>
+        <div class="result-header">
+          <div class="detected-lang">
+            Detected: <span id="detected-lang">—</span>
+          </div>
+          <button id="btn-fav" class="btn-fav" title="Save to favorites"></button>
         </div>
         <div class="field">
           <label>Translation</label>
           <div id="translation-output" class="output-box"></div>
+        </div>
+        <div id="cefr-area" class="extra-field hidden">
+          <span id="cefr-badge" class="cefr-badge"></span>
         </div>
         <div id="pronunciation-area" class="extra-field hidden">
           <label>Pronunciation</label>
@@ -61,6 +68,40 @@
         <div class="spinner"></div>
         <span>Translating...</span>
       </div>
+    </div>
+
+    <!-- Favorites Tab -->
+    <div id="tab-favorites" class="tab-content hidden">
+      <div class="fav-toolbar">
+        <select id="fav-filter" class="fav-filter">
+          <option value="all">All</option>
+          <option value="word">Words / Phrases</option>
+          <option value="sentence">Sentences / Paragraphs</option>
+        </select>
+        <select id="fav-date-filter" class="fav-filter">
+          <option value="all">All time</option>
+          <option value="today">Today</option>
+          <option value="week">This week</option>
+          <option value="month">This month</option>
+        </select>
+      </div>
+      <div id="fav-list" class="fav-list">
+        <div class="fav-empty">No saved items yet.</div>
+      </div>
+      <div class="fav-actions">
+        <button id="btn-export-fav" class="btn-secondary">Export TXT</button>
+        <button id="btn-clear-fav" class="btn-secondary btn-danger">Clear All</button>
+      </div>
+      <div class="fav-notion-export">
+        <label class="fav-export-label">Export to Notion</label>
+        <select id="notion-template" class="fav-filter">
+          <option value="database">Vocabulary Database</option>
+          <option value="report">Study Report</option>
+          <option value="flashcard">Flashcard Mode</option>
+        </select>
+        <button id="btn-export-notion" class="btn-notion-connect" style="margin-top:6px">Export to Notion</button>
+      </div>
+      <div id="notion-export-status" class="hidden notion-status"></div>
     </div>
 
     <!-- Settings Tab -->
@@ -122,17 +163,41 @@
         </div>
       </div>
 
+      <div class="field">
+        <label>Favorites - Save Type</label>
+        <select id="opt-save-type">
+          <option value="all">All translations</option>
+          <option value="word">Words and phrases only</option>
+        </select>
+      </div>
+
       <button id="btn-save" class="btn-primary">Save Settings</button>
       <div id="save-status" class="hidden save-status">Settings saved!</div>
+
+      <div class="section-divider"></div>
+
+      <div class="field">
+        <label>Notion Integration</label>
+        <div id="notion-disconnected">
+          <button id="btn-notion-connect" class="btn-notion-connect">Connect to Notion</button>
+        </div>
+        <div id="notion-connected" class="hidden">
+          <div class="notion-info">
+            <span id="notion-workspace-name"></span>
+            <button id="btn-notion-disconnect" class="btn-link btn-danger-text">Disconnect</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <footer class="footer">
-      <span>AI Translate v1.1.0</span>
+      <span>AI Translate v1.2.0</span>
       <a href="https://github.com/LemonAniLabs/AI-Extension" target="_blank" rel="noopener">GitHub</a>
     </footer>
   </div>
 
   <script src="../lib/languages.js"></script>
+  <script src="../lib/notion.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

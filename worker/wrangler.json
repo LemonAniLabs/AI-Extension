@@ -1,0 +1,5 @@
+{
+  "name": "ai-translate-oauth",
+  "main": "notion-oauth.js",
+  "compatibility_date": "2026-04-08"
+}

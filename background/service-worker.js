@@ -60,7 +60,66 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     chrome.storage.local.remove("pendingResult");
     return false;
   }
+
+  if (message.type === "notionConnect") {
+    notionConnect()
+      .then(sendResponse)
+      .catch((err) => sendResponse({ error: err.message }));
+    return true;
+  }
 });
+
+// --- Notion OAuth (runs in service worker so popup doesn't block) ---
+const NOTION_CLIENT_ID = "33cd872b-594c-814c-b275-00373e8af40d";
+const WORKER_URL = "https://ai-translate-oauth.innovai-studio.workers.dev";
+
+async function notionConnect() {
+  const api = typeof browser !== "undefined" ? browser : chrome;
+  const redirectUri = api.identity.getRedirectURL("callback");
+  console.log("Notion redirect URI:", redirectUri);
+
+  const authUrl = `https://api.notion.com/v1/oauth/authorize?client_id=${NOTION_CLIENT_ID}&response_type=code&owner=user&redirect_uri=${encodeURIComponent(redirectUri)}`;
+  console.log("Notion auth URL:", authUrl);
+
+  const callbackUrl = await new Promise((resolve, reject) => {
+    api.identity.launchWebAuthFlow(
+      { url: authUrl, interactive: true },
+      (url) => {
+        if (api.runtime.lastError) {
+          reject(new Error(api.runtime.lastError.message));
+        } else if (!url) {
+          reject(new Error("Authorization cancelled"));
+        } else {
+          resolve(url);
+        }
+      }
+    );
+  });
+
+  const url = new URL(callbackUrl);
+  const code = url.searchParams.get("code");
+  const error = url.searchParams.get("error");
+
+  if (error) throw new Error(`Notion error: ${error}`);
+  if (!code) throw new Error("No authorization code received");
+
+  // Exchange code via Cloudflare Worker
+  const res = await fetch(WORKER_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code, redirect_uri: redirectUri })
+  });
+  const data = await res.json();
+
+  if (data.error) throw new Error(data.error);
+
+  await chrome.storage.local.set({
+    notionToken: data.access_token,
+    notionWorkspace: data.workspace_name || "Connected"
+  });
+
+  return { workspace: data.workspace_name || "Connected" };
+}
 
 async function doTranslate(text, overrideSourceLang, overrideTargetLang) {
   const settings = await chrome.storage.local.get([

@@ -239,6 +239,76 @@
   to { transform: rotate(360deg); }
 }
 
+/* Result header with star */
+#ait-panel .ait-result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+#ait-panel .ait-btn-fav {
+  background: #f0f0f0;
+  border: 1px solid #d0d0d0;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  color: #999;
+  padding: 3px 6px;
+  line-height: 1;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+#ait-panel .ait-btn-fav::before {
+  content: "\2606";
+}
+
+#ait-panel .ait-btn-fav::after {
+  content: "Save";
+  font-size: 10px;
+}
+
+#ait-panel .ait-btn-fav:hover {
+  background: #fff8e1;
+  border-color: #f5a623;
+  color: #f5a623;
+}
+
+#ait-panel .ait-fav-saved {
+  background: #fff8e1;
+  border-color: #f5a623;
+  color: #f5a623;
+}
+
+#ait-panel .ait-fav-saved::before {
+  content: "\2605";
+}
+
+#ait-panel .ait-fav-saved::after {
+  content: "Saved";
+}
+
+/* CEFR badge */
+#ait-panel .ait-cefr-badge {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #fff;
+}
+
+#ait-panel .ait-cefr-a1 { background: #4caf50; }
+#ait-panel .ait-cefr-a2 { background: #8bc34a; }
+#ait-panel .ait-cefr-b1 { background: #ff9800; }
+#ait-panel .ait-cefr-b2 { background: #ff5722; }
+#ait-panel .ait-cefr-c1 { background: #9c27b0; }
+#ait-panel .ait-cefr-c2 { background: #673ab7; }
+
 /* Extra fields (pronunciation, definition, example) */
 #ait-panel .ait-extra {
   margin-top: 6px;
