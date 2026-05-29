@@ -5,14 +5,37 @@
 //   NOTION_CLIENT_ID     — from your Notion integration
 //   NOTION_CLIENT_SECRET — from your Notion integration
 
+// Allowed extension origins (filters out random web/curl traffic so we don't
+// burn the 100k/day Workers Free quota on garbage requests). Not a security
+// boundary — a determined attacker can forge the Origin header server-side.
+const CHROME_EXTENSION_ID = "ajkffakplhmpbghikgeiddeboojjjpel";
+function isAllowedOrigin(origin) {
+  return (
+    origin === `chrome-extension://${CHROME_EXTENSION_ID}` ||
+    origin.startsWith("moz-extension://")
+  );
+}
+
 export default {
   async fetch(request, env) {
-    // CORS headers
+    const origin = request.headers.get("Origin") || "";
+    const allowed = isAllowedOrigin(origin);
+
+    // Echo the request's origin only when allowed; this also satisfies CORS
+    // preflight strictness (browsers reject "*" for credentialed requests).
     const corsHeaders = {
-      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Origin": allowed ? origin : "null",
       "Access-Control-Allow-Methods": "POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type"
+      "Access-Control-Allow-Headers": "Content-Type",
+      "Vary": "Origin"
     };
+
+    if (!allowed) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
+    }
 
     if (request.method === "OPTIONS") {
       return new Response(null, { headers: corsHeaders });
