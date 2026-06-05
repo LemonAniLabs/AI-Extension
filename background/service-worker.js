@@ -129,6 +129,7 @@ async function doTranslate(text, overrideSourceLang, overrideTargetLang) {
     "azureDeployment",
     "targetLang",
     "sourceLang",
+    "geminiModel",
     "optPronunciation",
     "optDefinition",
     "optExample"
@@ -138,6 +139,7 @@ async function doTranslate(text, overrideSourceLang, overrideTargetLang) {
   const apiKeys = settings.apiKeys || {};
   const targetLangCode = overrideTargetLang || settings.targetLang || "en";
   const sourceLangCode = overrideSourceLang || settings.sourceLang || "auto";
+  const geminiModel = settings.geminiModel || "gemini-2.5-flash";
   const apiKey = apiKeys[provider];
 
   if (!apiKey) {
@@ -162,7 +164,7 @@ async function doTranslate(text, overrideSourceLang, overrideTargetLang) {
 
   switch (provider) {
     case "gemini":
-      return await providers.gemini(apiKey, text, targetName, sourceName, options);
+      return await providers.gemini(apiKey, text, targetName, sourceName, options, geminiModel);
     case "claude":
       return await providers.claude(apiKey, text, targetName, sourceName, options);
     case "azureOpenAI":

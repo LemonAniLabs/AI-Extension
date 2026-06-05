@@ -1,3 +1,5 @@
+const DEFAULT_GEMINI_MODEL = "gemini-2.5-flash";
+
 document.addEventListener("DOMContentLoaded", async () => {
   // --- Elements ---
   const tabs = document.querySelectorAll(".tab");
@@ -48,6 +50,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     claude: document.getElementById("field-claude-key"),
     azureOpenAI: document.getElementById("field-azure-key")
   };
+  const geminiModelField = document.getElementById("field-gemini-model");
   const azureExtra = [
     document.getElementById("field-azure-endpoint"),
     document.getElementById("field-azure-deployment")
@@ -59,6 +62,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   };
   const azureEndpoint = document.getElementById("azure-endpoint");
   const azureDeployment = document.getElementById("azure-deployment");
+  const geminiModel = document.getElementById("gemini-model");
   const targetLangSelect = document.getElementById("target-lang");
   const optPronunciation = document.getElementById("opt-pronunciation");
   const optDefinition = document.getElementById("opt-definition");
@@ -153,6 +157,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     azureExtra.forEach((el) => {
       el.classList.toggle("hidden", selected !== "azureOpenAI");
     });
+    geminiModelField.classList.toggle("hidden", selected !== "gemini");
   }
 
   providerRadios.forEach((radio) => {
@@ -162,6 +167,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // --- Load settings ---
   const settings = await chrome.storage.local.get([
     "provider", "apiKeys", "azureEndpoint", "azureDeployment",
+    "geminiModel",
     "targetLang", "sourceLang",
     "optPronunciation", "optDefinition", "optExample", "optSaveType"
   ]);
@@ -179,6 +185,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if (settings.azureEndpoint) azureEndpoint.value = settings.azureEndpoint;
   if (settings.azureDeployment) azureDeployment.value = settings.azureDeployment;
+  geminiModel.value = settings.geminiModel || DEFAULT_GEMINI_MODEL;
   if (settings.targetLang) {
     targetLangSelect.value = settings.targetLang;
     targetLangTranslate.value = settings.targetLang;
@@ -246,6 +253,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       provider, apiKeys,
       azureEndpoint: azureEndpoint.value.trim(),
       azureDeployment: azureDeployment.value.trim(),
+      geminiModel: geminiModel.value.trim() || DEFAULT_GEMINI_MODEL,
       targetLang: targetLangSelect.value,
       optPronunciation: optPronunciation.checked,
       optDefinition: optDefinition.checked,
