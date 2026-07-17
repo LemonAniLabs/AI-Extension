@@ -1,7 +1,13 @@
 const DEFAULT_GEMINI_MODEL = "gemini-2.5-flash";
 
 document.addEventListener("DOMContentLoaded", async () => {
+  // Standalone-window mode: same page, opened via chrome.windows.create
+  const isWindowed = new URLSearchParams(location.search).has("windowed");
+  if (isWindowed) document.body.classList.add("windowed");
+
   // --- Elements ---
+  const container = document.querySelector(".container");
+  const resizeGrip = document.getElementById("resize-grip");
   const tabs = document.querySelectorAll(".tab");
   const tabContents = {
     translate: document.getElementById("tab-translate"),
@@ -48,26 +54,38 @@ document.addEventListener("DOMContentLoaded", async () => {
   const keyFields = {
     gemini: document.getElementById("field-gemini-key"),
     claude: document.getElementById("field-claude-key"),
-    azureOpenAI: document.getElementById("field-azure-key")
+    azureOpenAI: document.getElementById("field-azure-key"),
+    custom: document.getElementById("field-custom-key")
   };
   const geminiModelField = document.getElementById("field-gemini-model");
   const azureExtra = [
     document.getElementById("field-azure-endpoint"),
     document.getElementById("field-azure-deployment")
   ];
+  const customExtra = [
+    document.getElementById("field-custom-url"),
+    document.getElementById("field-custom-model")
+  ];
   const keyInputs = {
     gemini: document.getElementById("key-gemini"),
     claude: document.getElementById("key-claude"),
-    azureOpenAI: document.getElementById("key-azure")
+    azureOpenAI: document.getElementById("key-azure"),
+    custom: document.getElementById("key-custom")
   };
   const azureEndpoint = document.getElementById("azure-endpoint");
   const azureDeployment = document.getElementById("azure-deployment");
+  const customUrl = document.getElementById("custom-url");
+  const customModel = document.getElementById("custom-model");
+  const customModelSelect = document.getElementById("custom-model-select");
+  const customModelStatus = document.getElementById("custom-model-status");
+  const btnLoadModels = document.getElementById("btn-load-models");
   const geminiModel = document.getElementById("gemini-model");
   const targetLangSelect = document.getElementById("target-lang");
   const optPronunciation = document.getElementById("opt-pronunciation");
   const optDefinition = document.getElementById("opt-definition");
   const optExample = document.getElementById("opt-example");
   const optSaveType = document.getElementById("opt-save-type");
+  const optWindowMode = document.getElementById("opt-window-mode");
   const btnSave = document.getElementById("btn-save");
   const saveStatus = document.getElementById("save-status");
 
@@ -157,6 +175,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     azureExtra.forEach((el) => {
       el.classList.toggle("hidden", selected !== "azureOpenAI");
     });
+    customExtra.forEach((el) => {
+      el.classList.toggle("hidden", selected !== "custom");
+    });
     geminiModelField.classList.toggle("hidden", selected !== "gemini");
   }
 
@@ -167,9 +188,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   // --- Load settings ---
   const settings = await chrome.storage.local.get([
     "provider", "apiKeys", "azureEndpoint", "azureDeployment",
+    "customBaseUrl", "customModel", "customModels",
     "geminiModel",
     "targetLang", "sourceLang",
-    "optPronunciation", "optDefinition", "optExample", "optSaveType"
+    "optPronunciation", "optDefinition", "optExample", "optSaveType",
+    "openInWindow", "popupHeight"
   ]);
 
   if (settings.provider) {
@@ -185,6 +208,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if (settings.azureEndpoint) azureEndpoint.value = settings.azureEndpoint;
   if (settings.azureDeployment) azureDeployment.value = settings.azureDeployment;
+  if (settings.customBaseUrl) customUrl.value = settings.customBaseUrl;
+  if (settings.customModel) customModel.value = settings.customModel;
   geminiModel.value = settings.geminiModel || DEFAULT_GEMINI_MODEL;
   if (settings.targetLang) {
     targetLangSelect.value = settings.targetLang;
@@ -198,6 +223,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   optDefinition.checked = settings.optDefinition !== false;
   optExample.checked = settings.optExample !== false;
   if (settings.optSaveType) optSaveType.value = settings.optSaveType;
+  optWindowMode.checked = settings.openInWindow === true;
 
   updateProviderFields();
 
@@ -241,6 +267,92 @@ document.addEventListener("DOMContentLoaded", async () => {
     await updateNotionUI();
   });
 
+  // --- Custom API: load model list ---
+  function showModelStatus(msg, isError) {
+    customModelStatus.textContent = msg;
+    customModelStatus.className = isError ? "model-status error" : "model-status";
+    customModelStatus.classList.remove("hidden");
+  }
+
+  // Swap the free-text input for a real dropdown listing the fetched models.
+  // A <datalist> is no good here: browsers filter its options by the input's
+  // current text, so once a model name is filled in only that one shows up.
+  function showModelSelect(models, selected) {
+    while (customModelSelect.firstChild) {
+      customModelSelect.removeChild(customModelSelect.firstChild);
+    }
+
+    const list = [...models];
+    if (selected && !list.includes(selected)) list.unshift(selected);
+
+    for (const id of list) {
+      const opt = document.createElement("option");
+      opt.value = id;
+      opt.textContent = id;
+      customModelSelect.appendChild(opt);
+    }
+    const manual = document.createElement("option");
+    manual.value = "__manual__";
+    manual.textContent = "Other (enter manually)...";
+    customModelSelect.appendChild(manual);
+
+    customModelSelect.value = selected || list[0];
+    customModel.value = customModelSelect.value;
+    customModel.classList.add("hidden");
+    customModelSelect.classList.remove("hidden");
+  }
+
+  // The hidden text input stays the single source of truth for saving
+  customModelSelect.addEventListener("change", () => {
+    if (customModelSelect.value === "__manual__") {
+      customModelSelect.classList.add("hidden");
+      customModel.classList.remove("hidden");
+      customModel.value = "";
+      customModel.focus();
+      return;
+    }
+    customModel.value = customModelSelect.value;
+  });
+
+  if (Array.isArray(settings.customModels) && settings.customModels.length > 0) {
+    showModelSelect(settings.customModels, settings.customModel || "");
+  }
+
+  btnLoadModels.addEventListener("click", () => {
+    const baseUrl = customUrl.value.trim();
+    if (!baseUrl) {
+      showModelStatus("Enter the API base URL first.", true);
+      return;
+    }
+
+    btnLoadModels.disabled = true;
+    showModelStatus("Loading models...", false);
+
+    chrome.runtime.sendMessage(
+      { type: "listModels", baseUrl, apiKey: keyInputs.custom.value.trim() },
+      (response) => {
+        btnLoadModels.disabled = false;
+        if (chrome.runtime.lastError) {
+          showModelStatus(chrome.runtime.lastError.message, true);
+          return;
+        }
+        if (!response || response.error) {
+          showModelStatus(response?.error || "Failed to load models.", true);
+          return;
+        }
+        if (response.models.length === 0) {
+          showModelStatus("Server returned no models. Enter the model name manually.", true);
+          return;
+        }
+
+        // Cache the list so the dropdown survives popup reopens
+        chrome.storage.local.set({ customModels: response.models });
+        showModelSelect(response.models, customModel.value.trim());
+        showModelStatus(`${response.models.length} models available.`, false);
+      }
+    );
+  });
+
   // --- Save settings ---
   btnSave.addEventListener("click", async () => {
     const provider = document.querySelector('input[name="provider"]:checked').value;
@@ -253,12 +365,15 @@ document.addEventListener("DOMContentLoaded", async () => {
       provider, apiKeys,
       azureEndpoint: azureEndpoint.value.trim(),
       azureDeployment: azureDeployment.value.trim(),
+      customBaseUrl: customUrl.value.trim(),
+      customModel: customModel.value.trim(),
       geminiModel: geminiModel.value.trim() || DEFAULT_GEMINI_MODEL,
       targetLang: targetLangSelect.value,
       optPronunciation: optPronunciation.checked,
       optDefinition: optDefinition.checked,
       optExample: optExample.checked,
-      optSaveType: optSaveType.value
+      optSaveType: optSaveType.value,
+      openInWindow: optWindowMode.checked
     });
 
     targetLangTranslate.value = targetLangSelect.value;
@@ -341,6 +456,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     errorArea.classList.remove("hidden");
     errorMsg.textContent = msg;
   }
+
+  // Enter translates; Shift+Enter inserts a newline. isComposing guards IME
+  // input (confirming a CJK composition with Enter must not trigger translate).
+  sourceText.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey && !e.isComposing) {
+      e.preventDefault();
+      btnTranslate.click();
+    }
+  });
 
   btnTranslate.addEventListener("click", async () => {
     const text = sourceText.value.trim();
@@ -666,4 +790,87 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     }
   });
+
+  // --- Popup height / standalone window ---
+  const MIN_POPUP_HEIGHT = 250;
+  const MAX_POPUP_HEIGHT = 560; // browsers cap popups at 600px total
+
+  function applyPopupHeight(height) {
+    container.style.height = `${height}px`;
+    container.style.maxHeight = "none";
+  }
+
+  if (!isWindowed) {
+    // Restore the height the user chose by dragging the grip
+    if (settings.popupHeight) {
+      applyPopupHeight(settings.popupHeight);
+    }
+
+    let dragStartY = 0;
+    let dragStartHeight = 0;
+
+    resizeGrip.addEventListener("pointerdown", (e) => {
+      dragStartY = e.clientY;
+      dragStartHeight = container.getBoundingClientRect().height;
+      resizeGrip.classList.add("dragging");
+      resizeGrip.setPointerCapture(e.pointerId);
+    });
+
+    resizeGrip.addEventListener("pointermove", (e) => {
+      if (!resizeGrip.classList.contains("dragging")) return;
+      const height = Math.min(
+        MAX_POPUP_HEIGHT,
+        Math.max(MIN_POPUP_HEIGHT, dragStartHeight + (e.clientY - dragStartY))
+      );
+      applyPopupHeight(height);
+    });
+
+    resizeGrip.addEventListener("pointerup", (e) => {
+      if (!resizeGrip.classList.contains("dragging")) return;
+      resizeGrip.classList.remove("dragging");
+      resizeGrip.releasePointerCapture(e.pointerId);
+      chrome.storage.local.set({
+        popupHeight: Math.round(container.getBoundingClientRect().height)
+      });
+    });
+
+    // Double-click resets to automatic height
+    resizeGrip.addEventListener("dblclick", () => {
+      container.style.height = "";
+      container.style.maxHeight = "";
+      chrome.storage.local.remove("popupHeight");
+    });
+  } else {
+    // Standalone window: the OS handles resizing — just remember the size
+    let boundsTimer;
+    window.addEventListener("resize", () => {
+      clearTimeout(boundsTimer);
+      boundsTimer = setTimeout(() => {
+        chrome.storage.local.set({
+          windowBounds: { width: window.outerWidth, height: window.outerHeight }
+        });
+      }, 400);
+    });
+
+    // The window stays open, so show context-menu translations as they arrive
+    chrome.storage.onChanged.addListener((changes, area) => {
+      if (area !== "local" || !changes.pendingResult?.newValue) return;
+      const pending = changes.pendingResult.newValue;
+      sourceText.value = pending.sourceText || "";
+      if (pending.error) {
+        showError(pending.error);
+      } else {
+        showResult(pending);
+      }
+      chrome.runtime.sendMessage({ type: "clearPending" });
+    });
+  }
+
+  // --- Focus the input so the user can type immediately ---
+  // Deferred: browsers move focus into the popup after DOMContentLoaded,
+  // so an immediate focus() call gets stolen.
+  const end = sourceText.value.length;
+  sourceText.setSelectionRange(end, end);
+  sourceText.focus();
+  setTimeout(() => sourceText.focus(), 100);
 });

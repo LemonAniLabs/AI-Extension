@@ -20,6 +20,7 @@ When you translate text, it is sent **only** to the LLM provider you selected:
 - **Google Gemini** — `generativelanguage.googleapis.com`
 - **Anthropic Claude** — `api.anthropic.com`
 - **Azure OpenAI** — `*.openai.azure.com`
+- **Custom API** — an OpenAI-compatible endpoint URL that you configure yourself (e.g. a self-hosted LiteLLM proxy)
 
 Your use of these services is subject to their respective privacy policies.
 

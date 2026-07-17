@@ -241,6 +241,15 @@
       doTranslateInPanel(text);
     });
 
+    // Enter translates; Shift+Enter inserts a newline. isComposing guards IME
+    // input (confirming a CJK composition with Enter must not trigger translate).
+    sourceTextarea.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey && !e.isComposing) {
+        e.preventDefault();
+        translateBtn.click();
+      }
+    });
+
     // Favorite button
     favBtn.addEventListener("click", () => {
       if (!lastInlineResult) return;

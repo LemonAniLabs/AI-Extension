@@ -27,7 +27,7 @@
 
       <div class="field">
         <label for="source-text">Text to translate</label>
-        <textarea id="source-text" rows="4" placeholder="Enter text or right-click selected text on any page..."></textarea>
+        <textarea id="source-text" rows="4" autofocus placeholder="Type text and press Enter to translate (Shift+Enter for a new line)..."></textarea>
       </div>
 
       <button id="btn-translate" class="btn-primary">Translate</button>
@@ -112,6 +112,7 @@
           <label><input type="radio" name="provider" value="gemini" checked> Gemini</label>
           <label><input type="radio" name="provider" value="claude"> Claude</label>
           <label><input type="radio" name="provider" value="azureOpenAI"> Azure OpenAI</label>
+          <label><input type="radio" name="provider" value="custom"> Custom API</label>
         </div>
       </div>
 
@@ -145,6 +146,27 @@
         <input type="text" id="azure-deployment" placeholder="gpt-4o">
       </div>
 
+      <div class="field hidden" id="field-custom-url">
+        <label for="custom-url">API Base URL</label>
+        <input type="text" id="custom-url" placeholder="http://your-server:4000">
+        <div class="field-hint">Any OpenAI-compatible API (LiteLLM, Ollama, LM Studio, vLLM, OpenRouter...). Enter the part of the URL before <code>/v1/chat/completions</code>.</div>
+      </div>
+
+      <div class="field hidden" id="field-custom-key">
+        <label for="key-custom">API Key</label>
+        <input type="password" id="key-custom" placeholder="sk-... (optional)">
+      </div>
+
+      <div class="field hidden" id="field-custom-model">
+        <label for="custom-model">Model</label>
+        <div class="model-row">
+          <input type="text" id="custom-model" placeholder="gpt-oss-120b">
+          <select id="custom-model-select" class="hidden"></select>
+          <button id="btn-load-models" class="btn-secondary btn-load-models" type="button" title="Fetch available models from the server">Load</button>
+        </div>
+        <div id="custom-model-status" class="model-status hidden"></div>
+      </div>
+
       <div class="field">
         <label for="target-lang">Target Language</label>
         <select id="target-lang"></select>
@@ -176,6 +198,17 @@
         </select>
       </div>
 
+      <div class="field">
+        <label>Interface</label>
+        <div class="toggle-group">
+          <label class="toggle-label">
+            <input type="checkbox" id="opt-window-mode">
+            <span>Open in a standalone window</span>
+          </label>
+        </div>
+        <div class="field-hint">Clicking the toolbar icon opens AI Translate in its own resizable window instead of this popup. The window size is remembered.</div>
+      </div>
+
       <button id="btn-save" class="btn-primary">Save Settings</button>
       <div id="save-status" class="hidden save-status">Settings saved!</div>
 
@@ -196,10 +229,12 @@
     </div>
 
     <footer class="footer">
-      <span>AI Translate v1.2.2</span>
+      <span>AI Translate v1.3.0</span>
       <a href="https://github.com/LemonAniLabs/AI-Extension" target="_blank" rel="noopener">GitHub</a>
     </footer>
   </div>
+
+  <div id="resize-grip" title="Drag to set the popup height — double-click to reset"></div>
 
   <script src="../lib/languages.js"></script>
   <script src="../lib/notion.js"></script>

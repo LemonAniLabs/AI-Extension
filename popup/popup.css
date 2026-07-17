@@ -527,6 +527,55 @@ textarea {
   background: #fff0f0;
 }
 
+/* Field hint */
+.field-hint {
+  margin-top: 4px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: #888;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.field-hint code {
+  font-size: 10px;
+  background: #f0f0f0;
+  border-radius: 3px;
+  padding: 0 3px;
+}
+
+/* Custom API model row */
+.model-row {
+  display: flex;
+  gap: 6px;
+}
+
+.model-row input,
+.model-row select {
+  flex: 1;
+  min-width: 0;
+}
+
+.btn-load-models {
+  flex: 0 0 auto;
+  width: auto;
+  padding: 8px 12px;
+}
+
+.model-status {
+  margin-top: 4px;
+  font-size: 11px;
+  color: #27ae60;
+}
+
+.model-status.error {
+  color: #c0392b;
+}
+
+.model-status.hidden {
+  display: none;
+}
+
 /* Section divider */
 .section-divider {
   border-top: 1px solid #e0e0e0;
@@ -639,6 +688,46 @@ textarea {
 
 .footer a:hover {
   text-decoration: underline;
+}
+
+/* Resize grip (popup mode) */
+#resize-grip {
+  height: 12px;
+  cursor: ns-resize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  touch-action: none;
+}
+
+#resize-grip::before {
+  content: "";
+  width: 40px;
+  height: 4px;
+  border-radius: 2px;
+  background: #d0d0d0;
+  transition: background 0.15s;
+}
+
+#resize-grip:hover::before,
+#resize-grip.dragging::before {
+  background: #4a90d9;
+}
+
+/* Standalone window mode: the OS window is the resizer, fill it */
+body.windowed {
+  width: auto;
+  min-width: 340px;
+}
+
+body.windowed .container {
+  max-height: none;
+  height: 100vh;
+}
+
+body.windowed #resize-grip {
+  display: none;
 }
 
 /* Utility */

@@ -1,4 +1,4 @@
-import { providers } from "../lib/providers.module.js";
+import { providers, listCustomModels } from "../lib/providers.module.js";
 import { LANGUAGES } from "../lib/languages.module.js";
 
 // Create context menu on install
@@ -8,6 +8,57 @@ chrome.runtime.onInstalled.addListener(() => {
     title: "AI Translate",
     contexts: ["selection"]
   });
+  applyActionMode();
+});
+
+// --- Standalone window mode ---
+// With openInWindow enabled the action popup is cleared, so clicking the
+// toolbar icon fires action.onClicked and we open a real window instead.
+async function applyActionMode() {
+  const { openInWindow } = await chrome.storage.local.get("openInWindow");
+  await chrome.action.setPopup({ popup: openInWindow ? "" : "popup/popup.html" });
+}
+
+chrome.runtime.onStartup.addListener(applyActionMode);
+
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === "local" && changes.openInWindow) applyActionMode();
+});
+
+// Only fires while the action has no popup (window mode)
+chrome.action.onClicked.addListener(() => {
+  openStandaloneWindow();
+});
+
+async function openStandaloneWindow() {
+  const store = await chrome.storage.local.get(["standaloneWindowId", "windowBounds"]);
+
+  // Focus the existing window instead of stacking new ones
+  if (store.standaloneWindowId != null) {
+    try {
+      await chrome.windows.update(store.standaloneWindowId, { focused: true });
+      return;
+    } catch {
+      // window was closed — create a fresh one
+    }
+  }
+
+  const bounds = store.windowBounds || {};
+  const win = await chrome.windows.create({
+    url: chrome.runtime.getURL("popup/popup.html?windowed=1"),
+    type: "popup",
+    focused: true,
+    width: bounds.width || 380,
+    height: bounds.height || 600
+  });
+  await chrome.storage.local.set({ standaloneWindowId: win.id });
+}
+
+chrome.windows.onRemoved.addListener(async (windowId) => {
+  const { standaloneWindowId } = await chrome.storage.local.get("standaloneWindowId");
+  if (standaloneWindowId === windowId) {
+    await chrome.storage.local.remove("standaloneWindowId");
+  }
 });
 
 // Handle keyboard shortcut
@@ -64,6 +115,13 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message.type === "notionConnect") {
     notionConnect()
       .then(sendResponse)
+      .catch((err) => sendResponse({ error: err.message }));
+    return true;
+  }
+
+  if (message.type === "listModels") {
+    listCustomModels(message.baseUrl, message.apiKey)
+      .then((models) => sendResponse({ models }))
       .catch((err) => sendResponse({ error: err.message }));
     return true;
   }
@@ -129,6 +187,8 @@ async function doTranslate(text, overrideSourceLang, overrideTargetLang) {
     "apiKeys",
     "azureEndpoint",
     "azureDeployment",
+    "customBaseUrl",
+    "customModel",
     "targetLang",
     "sourceLang",
     "geminiModel",
@@ -144,7 +204,8 @@ async function doTranslate(text, overrideSourceLang, overrideTargetLang) {
   const geminiModel = settings.geminiModel || "gemini-2.5-flash";
   const apiKey = apiKeys[provider];
 
-  if (!apiKey) {
+  // Custom OpenAI-compatible endpoints (e.g. a LiteLLM proxy) may not require a key
+  if (!apiKey && provider !== "custom") {
     throw new Error(`No API key configured for ${provider}. Please open settings.`);
   }
 
@@ -173,6 +234,11 @@ async function doTranslate(text, overrideSourceLang, overrideTargetLang) {
       return await providers.azureOpenAI(
         apiKey, text, targetName, sourceName, options,
         settings.azureEndpoint, settings.azureDeployment
+      );
+    case "custom":
+      return await providers.custom(
+        apiKey, text, targetName, sourceName, options,
+        settings.customBaseUrl, settings.customModel
       );
     default:
       throw new Error(`Unknown provider: ${provider}`);

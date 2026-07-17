@@ -1,14 +1,16 @@
 {
   "manifest_version": 3,
   "name": "AI Translate",
-  "version": "1.2.2",
-  "description": "Translate text using Gemini, Claude, or Azure OpenAI",
+  "version": "1.3.0",
+  "description": "Translate text using Gemini, Claude, Azure OpenAI, or any OpenAI-compatible API",
   "permissions": ["contextMenus", "storage", "activeTab", "identity"],
   "host_permissions": [
     "https://generativelanguage.googleapis.com/*",
     "https://api.anthropic.com/*",
     "https://*.openai.azure.com/*",
-    "https://api.notion.com/*"
+    "https://api.notion.com/*",
+    "http://*/*",
+    "https://*/*"
   ],
   "background": {
     "service_worker": "background/service-worker.js",
