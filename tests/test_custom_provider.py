@@ -75,6 +75,24 @@ class CustomProviderTests(unittest.TestCase):
         self.assertIn('"http://*/*"', manifest)
         self.assertIn('"https://*/*"', manifest)
 
+    def test_manifest_csp_does_not_upgrade_insecure_requests(self):
+        # Firefox's default MV3 CSP includes upgrade-insecure-requests, which
+        # rewrites http:// API calls to https:// and breaks plain-HTTP endpoints
+        manifest = read("manifest.json")
+
+        self.assertIn('"content_security_policy"', manifest)
+        self.assertIn('"extension_pages"', manifest)
+        self.assertNotIn("upgrade-insecure-requests", manifest)
+
+    def test_popup_requests_host_permission_on_user_gesture(self):
+        # Firefox MV3 does not grant host_permissions at install time
+        js = read("popup/popup.js")
+
+        self.assertIn("function requestHostPermission(baseUrl)", js)
+        self.assertIn("chrome.permissions.request({ origins: [originPattern] }", js)
+        self.assertIn("const granted = await requestHostPermission(baseUrl);", js)
+        self.assertIn('if (provider === "custom" && customUrl.value.trim()) {', js)
+
 
 if __name__ == "__main__":
     unittest.main()

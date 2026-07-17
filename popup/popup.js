@@ -267,6 +267,27 @@ document.addEventListener("DOMContentLoaded", async () => {
     await updateNotionUI();
   });
 
+  // --- Custom API: host permission ---
+  // Firefox MV3 treats host_permissions as optional and does NOT grant them at
+  // install time, so cross-origin fetches fail with NetworkError until the user
+  // approves. Chrome grants them at install, so request() resolves silently.
+  // Must be called from a user gesture with no preceding await.
+  function requestHostPermission(baseUrl) {
+    try {
+      const url = new URL(baseUrl.trim());
+      if (!/^https?:$/.test(url.protocol)) return Promise.resolve(false);
+      // Match patterns cannot carry a port; host-only covers all ports
+      const originPattern = `${url.protocol}//${url.hostname}/*`;
+      return new Promise((resolve) => {
+        chrome.permissions.request({ origins: [originPattern] }, (granted) => {
+          resolve(chrome.runtime.lastError ? false : Boolean(granted));
+        });
+      });
+    } catch {
+      return Promise.resolve(false);
+    }
+  }
+
   // --- Custom API: load model list ---
   function showModelStatus(msg, isError) {
     customModelStatus.textContent = msg;
@@ -318,10 +339,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     showModelSelect(settings.customModels, settings.customModel || "");
   }
 
-  btnLoadModels.addEventListener("click", () => {
+  btnLoadModels.addEventListener("click", async () => {
     const baseUrl = customUrl.value.trim();
     if (!baseUrl) {
       showModelStatus("Enter the API base URL first.", true);
+      return;
+    }
+
+    const granted = await requestHostPermission(baseUrl);
+    if (!granted) {
+      showModelStatus("Permission to access this server was declined.", true);
       return;
     }
 
@@ -356,6 +383,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   // --- Save settings ---
   btnSave.addEventListener("click", async () => {
     const provider = document.querySelector('input[name="provider"]:checked').value;
+
+    // Ask before any await so the user gesture is still valid (Firefox)
+    if (provider === "custom" && customUrl.value.trim()) {
+      await requestHostPermission(customUrl.value);
+    }
+
     const apiKeys = {};
     Object.entries(keyInputs).forEach(([key, input]) => {
       if (input.value.trim()) apiKeys[key] = input.value.trim();

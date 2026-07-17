@@ -81,6 +81,7 @@ then entering `<BASE_URL>`, `<KEY>`, and `<MODEL>` in the settings will work.
 #### Troubleshooting
 
 - **"Load" button fails but translation works** — some servers don't implement `/v1/models`. Just type the model name manually.
+- **Firefox: "NetworkError when attempting to fetch resource"** — Firefox does not grant host permissions at install time. Clicking **Load** or **Save Settings** prompts you to allow access to your server; accept it. You can also grant it manually under `about:addons` → AI Translate → Permissions.
 - **Custom API error (401/403)** — wrong or missing API key.
 - **Custom API error (404)** — the Base URL is wrong; you probably included too much or too little of the path. Enter only the part before `/v1/chat/completions`.
 - **Garbled or empty translations** — the model must be able to follow a "respond with JSON only" instruction. Very small models sometimes can't; if the raw text shows up as the translation, try a larger model.
